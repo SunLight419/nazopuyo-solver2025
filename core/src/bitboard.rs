@@ -38,17 +38,18 @@ impl SimpleBitBoardPuyoBoard {
         self.columns[column] = (self.columns[column] & !mask) | ((color_bits as u64) << shift);
     }
 
-    fn get_column_height(&self, column: usize) -> usize {
+    pub fn get_column_height(&self, column: usize) -> usize {
         if column >= 6 {
             return 0;
         }
         
-        for row in (0..13).rev() {
-            if self.get_puyo_bits(column, row) != 0 {
-                return row + 1;
-            }
+        let column_data = self.columns[column];
+        if column_data == 0 {
+            return 0;
         }
-        0
+        
+        let msb_index = 63 - column_data.leading_zeros();
+        (msb_index as usize / 3) + 1
     }
 
     fn find_connected_group(&self, start_col: usize, start_row: usize, color: PuyoColor) -> Vec<Position> {
@@ -261,5 +262,31 @@ mod tests {
         assert_eq!(board.get_puyo(Position::new(0, 1)), Some(PuyoColor::Blue));
         assert_eq!(board.get_puyo(Position::new(0, 5)), Some(PuyoColor::Empty));
         assert_eq!(board.get_puyo(Position::new(0, 10)), Some(PuyoColor::Empty));
+    }
+    
+    #[test]
+    fn test_column_height_optimization() {
+        let mut board = SimpleBitBoardPuyoBoard::new();
+        
+        assert_eq!(board.get_column_height(0), 0);
+        
+        board.place_puyo(Position::new(0, 0), PuyoColor::Red).unwrap();
+        assert_eq!(board.get_column_height(0), 1);
+        
+        board.place_puyo(Position::new(0, 1), PuyoColor::Blue).unwrap();
+        assert_eq!(board.get_column_height(0), 2);
+        
+        board.place_puyo(Position::new(0, 2), PuyoColor::Green).unwrap();
+        assert_eq!(board.get_column_height(0), 3);
+        
+        board.place_puyo(Position::new(0, 12), PuyoColor::Yellow).unwrap();
+        assert_eq!(board.get_column_height(0), 13);
+        
+        assert_eq!(board.get_column_height(1), 0);
+        
+        board.place_puyo(Position::new(1, 5), PuyoColor::Purple).unwrap();
+        assert_eq!(board.get_column_height(1), 6);
+        
+        assert_eq!(board.get_column_height(6), 0);
     }
 }
