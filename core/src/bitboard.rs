@@ -1,5 +1,6 @@
 use crate::types::{PuyoColor, Position, ChainInfo};
 use crate::traits::{PuyoBoard, PlacementError};
+use colored::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SimpleBitBoardPuyoBoard {
@@ -191,17 +192,17 @@ impl PuyoBoard for SimpleBitBoardPuyoBoard {
         for row in (0..13).rev() {
             for col in 0..6 {
                 let puyo_bits = self.get_puyo_bits(col, row);
-                let char = match puyo_bits {
-                    0 => '.',
-                    1 => '#',
-                    2 => 'R',
-                    3 => 'B',
-                    4 => 'G',
-                    5 => 'Y',
-                    6 => 'P',
-                    _ => '?',
+                let colored_char = match puyo_bits {
+                    0 => ".".normal(),
+                    1 => "#".bright_black(),
+                    2 => "R".red(),
+                    3 => "B".blue(),
+                    4 => "G".green(),
+                    5 => "Y".yellow(),
+                    6 => "P".magenta(),
+                    _ => "?".white(),
                 };
-                result.push(char);
+                result.push_str(&colored_char.to_string());
             }
             result.push('\n');
         }
